@@ -1,0 +1,63 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row g-4">
+        <!-- Transaction Details -->
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Chi Tiết Giao Dịch</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-muted">Số tiền:</h6>
+                    {% if type_ticket == 'BUSINESS' %}
+                    <h2 class="text-danger fw-bold">{{flight_price*quantity*2}} VND</h2>
+                    {% else %}
+                    <h2 class="text-danger fw-bold">{{flight_price*quantity}} VND</h2>
+                    {%endif%}
+                    <hr>
+                    <p><strong>Mã đơn hàng:</strong> dl0yeeeG7iLDGpPUC1D8</p>
+                    <p><strong>Đơn vị cung cấp:</strong> Vé Máy Bay</p>
+                    <p><strong>Nội dung:</strong> dl0yeeeG7iLDGpPUC1D8</p>
+                    <p><strong>Phí giao dịch:</strong> 0 VND</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Thông Tin Chuyển Khoản</h5>
+                </div>
+                <div class="card-body">
+                    <p>Vui lòng chọn một ngân hàng nhận chuyển khoản:</p>
+                    <div class="d-flex justify-content-between mb-4">
+                        <button class="btn btn-outline-primary w-100 mx-1">BIDV</button>
+                        <button class="btn btn-outline-primary w-100 mx-1">MSB</button>
+                        <button class="btn btn-outline-primary w-100 mx-1">TECHCOMBANK</button>
+                    </div>
+                    <h6>Quét mã QR để thanh toán nhanh:</h6>
+                    <div class="d-flex justify-content-center my-3">
+                        <img src="https://via.placeholder.com/150" alt="QR Code" class="img-fluid">
+                    </div>
+                    <p><strong>Số tài khoản:</strong> 9611310000117006</p>
+                    <p><strong>Chủ tài khoản:</strong> 9PAY BIZTRIP</p>
+                    {% if type_ticket == 'BUSINESS' %}
+                    <p><strong>Số tiền chuyển: </strong>{{flight_price*quantity*2}} VND</p>
+                    {% else %}
+                    <p><strong>Số tiền chuyển: </strong>{{flight_price*quantity}} VND</p>
+                    {%endif%}
+
+                    <p class="text-muted">Lưu ý: Vui lòng chuyển khoản 24/7 để giao dịch xử lý nhanh nhất.</p>
+                    <p class="text-muted">Hotline: 1900 88 68 32</p>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
