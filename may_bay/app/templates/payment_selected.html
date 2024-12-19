@@ -1,0 +1,79 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row g-4">
+        <!-- Payment Options -->
+        <div class="col-lg-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-credit-card-2-front"></i> Chọn hình thức thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="bankTransfer" checked>
+                        <label class="form-check-label" for="bankTransfer">
+                            Chuyển khoản Ngân hàng / QR Code
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="atmCard">
+                        <label class="form-check-label" for="atmCard">
+                            Thẻ ATM Nội Địa
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="internationalCard">
+                        <label class="form-check-label" for="internationalCard">
+                            Thẻ Quốc Tế
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="payLater">
+                        <label class="form-check-label" for="payLater">
+                            Thanh toán sau
+                        </label>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">Tổng</span>
+                        <span class="text-danger fw-bold">2,325,000 đ</span>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-primary w-100"><i class="bi bi-check-circle"></i> Xác nhận thanh toán</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baggage Information -->
+        <div class="col-lg-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-bag"></i> Thông tin hành lý</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold">Người lớn (Hành khách 1)</h6>
+                    <ul class="list-unstyled mb-4">
+                        <li><i class="bi bi-bag"></i> Hành lý ký gửi: <strong>Chưa bao gồm</strong></li>
+                        <li><i class="bi bi-bag-check"></i> Hành lý xách tay: <strong>1 kiện</strong></li>
+                    </ul>
+                    <h6 class="fw-bold">Chi tiết giá</h6>
+                    <ul class="list-unstyled mb-4">
+                        <li><i class="bi bi-ticket-perforated"></i> Vé máy bay (Hành khách 1 người lớn): <strong>1,455,000 đ</strong></li>
+                        <li><i class="bi bi-cash"></i> Giá vé: <strong>809,000 đ</strong></li>
+                        <li><i class="bi bi-receipt"></i> Thuế và phí: <strong>646,000 đ</strong></li>
+                    </ul>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">Tổng</span>
+                        <span class="text-danger fw-bold">1,455,000 đ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
