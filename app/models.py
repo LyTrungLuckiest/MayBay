@@ -171,15 +171,23 @@ class Luggage(db.Model):
     user_id = Column(Integer, ForeignKey(User.id), nullable=False)
     flight_id = Column(Integer, ForeignKey(Flight.flight_id), nullable=False)
 
+class CustomerInfo(db.Model):
+    customer_id = Column(Integer, primary_key=True, autoincrement=True)
+    first_name = Column(String(255), nullable=False)
+    last_name = Column(String(255), nullable=False)
+    phone_number = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+
 class Ticket(db.Model):
     ticket_id = Column(Integer, primary_key=True, autoincrement=True)
     issue_date = Column(Date, nullable=False)
     ticket_price = Column(Float, nullable=False)
     ticket_status = Column(Boolean, nullable=False)
     ticket_gate = Column(Integer, nullable=False)
-    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
+    user_id = Column(Integer, ForeignKey(User.id), nullable=False) # customer_id = null thì là người mua ngược lại là người bán
     flight_id = Column(Integer, ForeignKey(Flight.flight_id), nullable=False)
     seat_id = Column(Integer, ForeignKey(Seat.seat_id), nullable=False)
+    customer_id = Column(Integer, ForeignKey(CustomerInfo.customer_id)) # nếu mua tại quầy thì lưu thông tin vào bảng CustomerInfo, mặc định là 1 (staff)
 
 class IntermediateAirport(db.Model):
     intermediate_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -190,6 +198,8 @@ class IntermediateAirport(db.Model):
 
     flight = relationship("Flight", backref="intermediate_airports")
     airport = relationship("Airport", backref="intermediate_airports")
+
+
 
 
 
@@ -323,10 +333,17 @@ if __name__ == '__main__':
         db.session.add_all(intermediates)
         db.session.commit()
 
+        # Add CustomerInfor
+        customer_info = [
+            CustomerInfo(first_name="Thanh Ly Trung", last_name="Le", email="trung@gmail.com", phone_number="0321456782")
+        ]
+        db.session.add_all(customer_info)
+        db.session.commit()
+
         # Add Tickets
         tickets = [
-            Ticket(issue_date=date.today(), ticket_price=150.0, ticket_status=True, ticket_gate=1, user_id=4,
-                   flight_id=1, seat_id=1),
+            Ticket(issue_date=date.today(), ticket_price=150.0, ticket_status=True, ticket_gate=1, user_id=2,
+                   flight_id=1, seat_id=1, customer_id = 1),
             Ticket(issue_date=date.today(), ticket_price=120.0, ticket_status=True, ticket_gate=2, user_id=4,
                    flight_id=2, seat_id=2),
             Ticket(issue_date=date.today(), ticket_price=200.0, ticket_status=True, ticket_gate=3, user_id=5,
@@ -338,5 +355,7 @@ if __name__ == '__main__':
         ]
         db.session.add_all(tickets)
         db.session.commit()
+
+
 
         print("Data added successfully!")

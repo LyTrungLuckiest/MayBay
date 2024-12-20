@@ -1,6 +1,6 @@
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
-from app.models import User, Airport, FlightRoute, Flight, Company, Plane, Seat, FlightType, Booking
+from app.models import User, Airport, FlightRoute, Flight, Company,Booking,Ticket
 from app import db,app
 import hashlib
 import cloudinary.uploader
@@ -154,43 +154,89 @@ def get_flights(page):
 def count_flights():
     return Flight.query.count()
 
-def products_stats():
-    # Tạo alias cho bảng Airport để xử lý join
-    ArrivalAirport = aliased(Airport)
+def get_tiket_statistics():
+    # Thống kê doanh thu theo tháng
+    stats2 = db.session.query(
+        func.date_format(Ticket.issue_date, "%Y-%m").label("month"),
+        func.sum(Ticket.ticket_price).label("monthly_revenue")
+    ).filter(
+        Ticket.ticket_status == True
+    ).group_by(
+        func.date_format(Ticket.issue_date, "%Y-%m")
+    ).order_by(
+        func.date_format(Ticket.issue_date, "%Y-%m")
+    ).all()
 
-    # Truy vấn thống kê doanh thu theo tuyến bay
+    return  stats2
+
+def get_flight_statistics():
+    # Aliases cho các bảng sân bay
+    departure_airport = db.aliased(Airport)
+    arrival_airport = db.aliased(Airport)
+
+    # Thống kê doanh thu theo tuyến bay
     stats = db.session.query(
-        FlightRoute.fr_id,
-        func.concat(Airport.airport_name, " - ", ArrivalAirport.airport_name).label("route_name"),
-        func.sum(Booking.group_size * Flight.flight_price).label("revenue")
+        FlightRoute.fr_id.label("id"),
+        func.concat(
+            departure_airport.airport_name,
+            " - ",
+            arrival_airport.airport_name
+        ).label("route_name"),
+        func.sum(Ticket.ticket_price).label("revenue")
+    ).select_from(
+        FlightRoute
+    ).join(
+        departure_airport, FlightRoute.departure_airport_id == departure_airport.airport_id
+    ).join(
+        arrival_airport, FlightRoute.arrival_airport_id == arrival_airport.airport_id
     ).join(
         Flight, Flight.flight_route_id == FlightRoute.fr_id
     ).join(
-        Booking, Booking.flight_id == Flight.flight_id
-    ).join(
-        Airport, Airport.airport_id == FlightRoute.departure_airport_id
-    ).join(
-        ArrivalAirport, ArrivalAirport.airport_id == FlightRoute.arrival_airport_id
+        Ticket, Ticket.flight_id == Flight.flight_id
     ).filter(
-        Booking.booking_status == True  # Chỉ lấy các booking đã thanh toán
+        Ticket.ticket_status == True
     ).group_by(
-        FlightRoute.fr_id, "route_name"
+        FlightRoute.fr_id,
+        departure_airport.airport_name,
+        arrival_airport.airport_name
     ).order_by(
-        func.sum(Booking.group_size * Flight.flight_price).desc()
+        func.sum(Ticket.ticket_price).desc()
     ).all()
 
-    # Truy vấn thống kê doanh thu theo tháng
-    stats2 = db.session.query(
-        func.date_format(Booking.book_date, '%Y-%m').label('month'),
-        func.sum(Booking.group_size * Flight.flight_price).label("revenue")
+    return stats
+
+def ticket_stats():
+    # Aliases cho các bảng sân bay
+    departure_airport = db.aliased(Airport)
+    arrival_airport = db.aliased(Airport)
+
+    # Thống kê doanh thu theo tuyến bay
+    stats = db.session.query(
+        FlightRoute.fr_id.label("id"),
+        func.concat(
+            departure_airport.airport_name,
+            " - ",
+            arrival_airport.airport_name
+        ).label("route_name"),
+        func.count(Ticket.ticket_id).label("ticket_count")  # Đếm số lượng vé
+    ).select_from(
+        FlightRoute
     ).join(
-        Flight, Flight.flight_id == Booking.flight_id
+        departure_airport, FlightRoute.departure_airport_id == departure_airport.airport_id
+    ).join(
+        arrival_airport, FlightRoute.arrival_airport_id == arrival_airport.airport_id
+    ).join(
+        Flight, Flight.flight_route_id == FlightRoute.fr_id
+    ).join(
+        Ticket, Ticket.flight_id == Flight.flight_id
     ).filter(
-        Booking.booking_status == True
+        Ticket.ticket_status == True
     ).group_by(
-        'month'
+        FlightRoute.fr_id,
+        departure_airport.airport_name,
+        arrival_airport.airport_name
     ).order_by(
-        'month'
+        func.sum(Ticket.ticket_price).desc()
     ).all()
 
-    return stats, stats2
+    return stats
