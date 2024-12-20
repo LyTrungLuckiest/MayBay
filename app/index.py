@@ -2,12 +2,12 @@ import math
 
 import unicodedata
 
-from flask import render_template, request, redirect, session, jsonify, url_for
+from flask import render_template, request, redirect, session, jsonify, url_for,flash
 import dao, utils
 from app import app, login,db
 from flask_login import login_user, logout_user,current_user
 
-from app.models import UserRole, Flight, CustomerInfo
+from app.models import UserRole, Flight, CustomerInfo, Ticket
 from datetime import datetime
 
 
@@ -21,14 +21,9 @@ def remove_accents(input_str):
 def index():
         departure_name = request.args.get('departure', 'Ho Chi Minh')
         departure_name = remove_accents(departure_name)
-
-
         routes = dao.get_popular_routes(departure_name)
-
         cities = ["Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Singapore", "Bangkok", "Taipei", "Seoul", "Tokyo"]
-
         airports = dao.load_airports()
-
 
         page = request.args.get('page', 1)
         page = int(page)
@@ -336,8 +331,34 @@ def add_customer():
         phone_number = request.form['phone_number']
         email = request.form['email']
         flight_id = request.form.get('flight_id')
-        quantity = request.form.get('quantity')
         type_ticket = request.form.get('type_ticket')
+        ticket_price = request.form.get('ticket_price')
+        issue_date = request.form.get('departure_date')
+
+        departure_name = request.args.get('departure', 'Ho Chi Minh')
+        departure_name = remove_accents(departure_name)
+        routes = dao.get_popular_routes(departure_name)
+        cities = ["Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Singapore", "Bangkok", "Taipei", "Seoul", "Tokyo"]
+        airports = dao.load_airports()
+
+        page = request.args.get('page', 1)
+        page = int(page)
+
+        flights = dao.get_flights(page)
+        flights_counter = dao.count_flights()
+        total_pages = math.ceil(flights_counter / app.config['PAGE_SIZE'])
+
+        # Gọi DAO để lấy ghế đầu tiên
+        seat_id = dao.get_first_available_seat(flight_id, type_ticket)
+        if not seat_id:
+            return render_template('index.html', airports=airports,
+            routes=routes,
+            cities=cities,
+            flights=flights,
+            departure_name=departure_name,
+            pages=total_pages, error_message="Tất cả ghế đã được đặt. Vui lòng thử lại sau."
+           )
+
 
         # Tạo đối tượng Customer và lưu vào CSDL
         new_customer = CustomerInfo(
@@ -347,12 +368,35 @@ def add_customer():
             email=email,
             user_id=current_user.id
         )
-
         db.session.add(new_customer)
         db.session.commit()
 
+
+        ticket = Ticket(
+            issue_date=issue_date,
+            ticket_price=ticket_price,
+            ticket_status=True,
+            ticket_gate=1,
+            user_id=current_user.id,
+            flight_id=flight_id,
+            seat_id=seat_id,
+            customer_id=new_customer.customer_id
+
+        )
+        db.session.add(ticket)
+        db.session.commit()
+        dao.mark_seat_as_booked(seat_id)
+
+
+
         # Sau khi lưu thành công, chuyển hướng đến trang thanh toán
-        return redirect(url_for('payment_qr', flight_id=flight_id, quantity=quantity, type_ticket=type_ticket))
+        return render_template('index.html', airports=airports,
+                               routes=routes,
+                               cities=cities,
+                               flights=flights,
+                               departure_name=departure_name,
+                               pages=total_pages, success_message="Đặt ghế thành công"
+                               )
 
 
 if __name__ == '__main__':

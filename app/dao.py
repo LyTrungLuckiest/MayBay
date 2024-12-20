@@ -1,6 +1,6 @@
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
-from app.models import User, Airport, FlightRoute, Flight, Company,Booking,Ticket
+from app.models import User, Airport, FlightRoute, Flight, Company, Booking, Ticket, Seat
 from app import db,app
 import hashlib
 import cloudinary.uploader
@@ -240,3 +240,36 @@ def ticket_stats():
     ).all()
 
     return stats
+
+
+def get_first_available_seat(flight_id, seat_class=None):
+
+    # Tìm chuyến bay theo flight_id
+    flight = Flight.query.filter_by(flight_id=flight_id).first()
+
+    if not flight:
+         return None  # Không tìm thấy chuyến bay
+
+        # Lấy danh sách ghế trống của máy bay thuộc chuyến bay
+    query = Seat.query.filter_by(plane_id=flight.plane_id, seat_status=False)
+
+    # Lọc theo loại ghế nếu có
+    if seat_class:
+        query = query.filter_by(seat_class=seat_class)
+
+    # Lấy ghế đầu tiên
+    first_seat = query.first()
+
+    if first_seat:
+        return {
+            first_seat.seat_id,
+
+            }
+    return None
+
+def mark_seat_as_booked(seat_id):
+    seat = Seat.query.get(seat_id)
+    if seat:
+        seat.seat_status = True
+        db.session.add(seat)
+        db.session.commit()
