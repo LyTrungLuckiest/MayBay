@@ -13,14 +13,14 @@
                 <div class="card-body">
                     <h6 class="text-muted">Số tiền:</h6>
                     {% if type_ticket == 'BUSINESS' %}
-                    <h2 class="text-danger fw-bold">{{flight_price*quantity*2}} VND</h2>
+                    <h2 class="text-danger fw-bold">{{ flight_price * quantity * 2 }} VND</h2>
                     {% else %}
-                    <h2 class="text-danger fw-bold">{{flight_price*quantity}} VND</h2>
-                    {%endif%}
+                    <h2 class="text-danger fw-bold">{{ flight_price * quantity }} VND</h2>
+                    {% endif %}
                     <hr>
-                    <p><strong>Mã đơn hàng:</strong> dl0yeeeG7iLDGpPUC1D8</p>
-                    <p><strong>Đơn vị cung cấp:</strong> Vé Máy Bay</p>
-                    <p><strong>Nội dung:</strong> dl0yeeeG7iLDGpPUC1D8</p>
+                    <p><strong>Mã đơn hàng:</strong> {{ flight_id }}</p>
+                    <p><strong>Loại vé</strong> {{ type_ticket }}</p>
+                    <p><strong>Nội dung:</strong> Thanh toán vé máy bay</p>
                     <p><strong>Phí giao dịch:</strong> 0 VND</p>
                 </div>
             </div>
@@ -41,15 +41,19 @@
                     </div>
                     <h6>Quét mã QR để thanh toán nhanh:</h6>
                     <div class="d-flex justify-content-center my-3">
-                        <img src="https://via.placeholder.com/150" alt="QR Code" class="img-fluid">
+                        <img src="https://res.cloudinary.com/dd1frsvzk/image/upload/v1734714383/sonwp73cbaecnoxlir9s.jpg"
+                             alt="QR Code"
+                             class="img-fluid"
+                             style="max-width: 250px; max-height: 200px; width: 250px; height: 200px;">
+
                     </div>
                     <p><strong>Số tài khoản:</strong> 9611310000117006</p>
                     <p><strong>Chủ tài khoản:</strong> 9PAY BIZTRIP</p>
                     {% if type_ticket == 'BUSINESS' %}
-                    <p><strong>Số tiền chuyển: </strong>{{flight_price*quantity*2}} VND</p>
+                    <p><strong>Số tiền chuyển: </strong>{{ flight_price * quantity * 2 }} VND</p>
                     {% else %}
-                    <p><strong>Số tiền chuyển: </strong>{{flight_price*quantity}} VND</p>
-                    {%endif%}
+                    <p><strong>Số tiền chuyển: </strong>{{ flight_price * quantity }} VND</p>
+                    {% endif %}
 
                     <p class="text-muted">Lưu ý: Vui lòng chuyển khoản 24/7 để giao dịch xử lý nhanh nhất.</p>
                     <p class="text-muted">Hotline: 1900 88 68 32</p>

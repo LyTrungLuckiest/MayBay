@@ -14,6 +14,7 @@ app.config["PAGE_SIZE"] = 3
 
 db = SQLAlchemy(app)
 login = LoginManager(app)
+login.login_view = 'login_process'
 
 
 cloudinary.config(

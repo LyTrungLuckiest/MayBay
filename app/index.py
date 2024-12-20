@@ -4,10 +4,10 @@ import unicodedata
 
 from flask import render_template, request, redirect, session, jsonify, url_for,flash
 import dao, utils
-from app import app, login,db
-from flask_login import login_user, logout_user,current_user
+from app import app, login, db
+from flask_login import login_user, logout_user,current_user, login_required
 
-from app.models import UserRole, Flight, CustomerInfo, Ticket
+from app.models import UserRole, Flight, CustomerInfo, Ticket, Regulation
 from datetime import datetime
 
 
@@ -135,6 +135,7 @@ def search_flights_route():
 
 
 @app.route("/payment_info/<int:flight_id>/<int:quantity>/<type_ticket>")
+@login_required
 def payment_info(flight_id, quantity, type_ticket):
     flight = Flight.query.get(flight_id)
 
@@ -179,6 +180,8 @@ def payment_info(flight_id, quantity, type_ticket):
         return "Flight not found", 404
 
 
+
+
 @app.route("/payment_qr/<int:flight_id>/<int:quantity>/<type_ticket>")
 def payment_qr(flight_id,quantity,type_ticket):
     flight = Flight.query.get(flight_id)
@@ -186,30 +189,16 @@ def payment_qr(flight_id,quantity,type_ticket):
     if flight:
         # Lấy các thông tin từ chuyến bay và các bảng liên quan
         company_name = flight.plane.company.com_name
-        departure_time = flight.f_dept_time.strftime('%H:%M')
-        arrival_time = flight.flight_arr_time.strftime('%H:%M')
-        arrival_local =  flight.flight_route.arrival_airport.airport_name
-        departure_local = flight.flight_route.departure_airport.airport_name
-        flight_duration = flight.flight_duration
-        flight_type=flight.flight_type.name
         flight_price = flight.flight_price
-        departure_date = flight.f_dept_time.date()
-        formatted_date = departure_date.strftime('%Y-%m-%d')
 
         # Truyền dữ liệu vào template
         return render_template(
             'payment_qr.html',
-            company_name=company_name,
-            departure_time=departure_time,
-            arrival_time=arrival_time,
-            arrival_local=arrival_local,
-            departure_local=departure_local,
-            flight_duration=flight_duration,
-            flight_price=flight_price,
-            departure_date =formatted_date,
-            flight_type=flight_type,
-            quantity=quantity,
-            type_ticket=type_ticket
+            flight_id = flight_id,
+            company_name = company_name,
+            flight_price = flight_price,
+            quantity = quantity,
+            type_ticket = type_ticket
         )
     else:
         return "Flight not found", 404
@@ -261,7 +250,11 @@ def add_to_cart():
 
 @app.route("/cart")
 def cart_view():
-    return render_template('cart.html')
+    is_customer = current_user.is_authenticated and current_user.user_role == UserRole.CUSTOMER
+
+
+
+    return render_template('cart.html', is_customer=is_customer)
 
 @app.context_processor
 def common_response_data():
@@ -395,9 +388,12 @@ def add_customer():
                                cities=cities,
                                flights=flights,
                                departure_name=departure_name,
-                               pages=total_pages, success_message="Đặt ghế thành công"
+                               pages=total_pages, success_message="Đặt vé thành công"
                                )
-
+@app.route('/regulations')
+def show_regulations():
+    regulations = Regulation.query.all()
+    return render_template('regulations.html', regulations=regulations)
 
 if __name__ == '__main__':
     with app.app_context():
