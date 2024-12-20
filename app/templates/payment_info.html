@@ -35,30 +35,52 @@
                     </div>
                 </div>
 
+
+                {% if current_role == 'ADMIN' or current_role == 'STAFF_TICKET' %}
                 <hr>
+                <form action="/add_customer" method="POST">
+                    <h6 class="fw-bold">Thông tin liên hệ</h6>
+                    <div class="row g-3">
+                        <input type="hidden" name="flight_id" value="{{ flight_id }}">
+                        <input type="hidden" name="quantity" value="{{ quantity }}">
+                        <input type="hidden" name="type_ticket" value="{{ type_ticket }}">
+                        <div class="col-md-6">
+                            <label for="contactFullName" class="form-label">Tên đệm và tên</label>
+                            <input type="text" class="form-control" id="contactFullName" name="first_name"
+                                   placeholder="Nhập tên đệm và tên" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contactFirstName" class="form-label">Họ</label>
+                            <input type="text" class="form-control" id="contactFirstName" name="last_name"
+                                   placeholder="Nhập họ" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contactPhone" class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" id="contactPhone" name="phone_number"
+                                   placeholder="Nhập số điện thoại" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contactEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="contactEmail" name="email"
+                                   placeholder="Nhập email" required>
+                        </div>
 
-                <h6 class="fw-bold">Thông tin liên hệ</h6>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                         <label for="contactFullName" class="form-label">Tên đệm và tên</label>
-                        <input type="text" class="form-control" id="contactFullName" placeholder="Nhập tên đệm và tên"
-                               required>
                     </div>
-                    <div class="col-md-6">
-                        <label for="contactFirstName" class="form-label">Họ</label>
-                        <input type="text" class="form-control" id="contactFirstName" placeholder="Nhập họ" required>
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        {% if type_ticket == 'BUSINESS' %}
+                        <div class="total text-success fw-bold">Tổng: {{flight_price*2*quantity}} đ</div>
+                        {% else %}
+                        <div class="total text-success fw-bold">Tổng: {{flight_price*quantity}} đ</div>
+                        {% endif %}
+                        <button type="submit"
+                                class="btn btn-success">
+                            Tiếp tục
+                        </button>
                     </div>
-                    <div class="col-md-6">
-                        <label for="contactPhone" class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-control" id="contactPhone" placeholder="Nhập số điện thoại"
-                               required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="contactEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="contactEmail" placeholder="Nhập email" required>
-                    </div>
-                </div>
+                </form>
 
+
+                {%else%}
                 <hr>
 
                 <div class="d-flex justify-content-between align-items-center mt-4">
@@ -73,6 +95,8 @@
                         Tiếp tục
                     </button>
                 </div>
+                {% endif %}
+
             </div>
         </div>
         <div class="col">

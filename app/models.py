@@ -29,6 +29,7 @@ class FlightType(RoleEnum):
 
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'user'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
     username = Column(String(100), nullable=False, unique=True)
@@ -177,6 +178,8 @@ class CustomerInfo(db.Model):
     last_name = Column(String(255), nullable=False)
     phone_number = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False)
+    user_id = db.Column(Integer, ForeignKey('user.id'), nullable=False)  # Khóa ngoại liên kết đến bảng User
+    user = relationship('User', backref='customers')  # Quan hệ với bảng User
 
 class Ticket(db.Model):
     ticket_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -335,7 +338,7 @@ if __name__ == '__main__':
 
         # Add CustomerInfor
         customer_info = [
-            CustomerInfo(first_name="Thanh Ly Trung", last_name="Le", email="trung@gmail.com", phone_number="0321456782")
+            CustomerInfo(first_name="Thanh Ly Trung", last_name="Le", email="trung@gmail.com", phone_number="0321456782",user_id=2)
         ]
         db.session.add_all(customer_info)
         db.session.commit()
@@ -356,6 +359,3 @@ if __name__ == '__main__':
         db.session.add_all(tickets)
         db.session.commit()
 
-
-
-        print("Data added successfully!")

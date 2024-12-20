@@ -2,12 +2,12 @@ import math
 
 import unicodedata
 
-from flask import render_template, request, redirect, session, jsonify
+from flask import render_template, request, redirect, session, jsonify, url_for
 import dao, utils
-from app import app, login
-from flask_login import login_user, logout_user
+from app import app, login,db
+from flask_login import login_user, logout_user,current_user
 
-from app.models import UserRole, Seat, Flight
+from app.models import UserRole, Flight, CustomerInfo
 from datetime import datetime
 
 
@@ -140,21 +140,28 @@ def search_flights_route():
 
 
 @app.route("/payment_info/<int:flight_id>/<int:quantity>/<type_ticket>")
-def payment_info(flight_id,quantity,type_ticket):
+def payment_info(flight_id, quantity, type_ticket):
     flight = Flight.query.get(flight_id)
 
     if flight:
-        # Lấy các thông tin từ chuyến bay và các bảng liên quan
+        # Lấy các thông tin từ chuyến bay
         company_name = flight.plane.company.com_name
         departure_time = flight.f_dept_time.strftime('%H:%M')
         arrival_time = flight.flight_arr_time.strftime('%H:%M')
-        arrival_local =  flight.flight_route.arrival_airport.airport_name
+        arrival_local = flight.flight_route.arrival_airport.airport_name
         departure_local = flight.flight_route.departure_airport.airport_name
         flight_duration = flight.flight_duration
-        flight_type=flight.flight_type.name
+        flight_type = flight.flight_type.name
         flight_price = flight.flight_price
         departure_date = flight.f_dept_time.date()
         formatted_date = departure_date.strftime('%Y-%m-%d')
+
+        # Kiểm tra người dùng hiện tại
+        if current_user.is_authenticated:
+            user = get_user_by_id(current_user.id)
+            current_role = user.user_role.name
+        else:
+            current_role = None
 
         # Truyền dữ liệu vào template
         return render_template(
@@ -167,13 +174,15 @@ def payment_info(flight_id,quantity,type_ticket):
             departure_local=departure_local,
             flight_duration=flight_duration,
             flight_price=flight_price,
-            departure_date =formatted_date,
+            departure_date=formatted_date,
             flight_type=flight_type,
             quantity=quantity,
-            type_ticket=type_ticket
+            type_ticket=type_ticket,
+            current_role=current_role
         )
     else:
         return "Flight not found", 404
+
 
 @app.route("/payment_qr/<int:flight_id>/<int:quantity>/<type_ticket>")
 def payment_qr(flight_id,quantity,type_ticket):
@@ -317,6 +326,33 @@ def update_cart():
         return jsonify({'success': True, 'stats': stats})
 
     return jsonify({'success': False, 'message': 'Invalid cart or quantity'})
+
+@app.route('/add_customer', methods=['POST'])
+def add_customer():
+    if request.method == 'POST':
+        # Lấy dữ liệu từ form
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        phone_number = request.form['phone_number']
+        email = request.form['email']
+        flight_id = request.form.get('flight_id')
+        quantity = request.form.get('quantity')
+        type_ticket = request.form.get('type_ticket')
+
+        # Tạo đối tượng Customer và lưu vào CSDL
+        new_customer = CustomerInfo(
+            first_name=first_name,
+            last_name=last_name,
+            phone_number=phone_number,
+            email=email,
+            user_id=current_user.id
+        )
+
+        db.session.add(new_customer)
+        db.session.commit()
+
+        # Sau khi lưu thành công, chuyển hướng đến trang thanh toán
+        return redirect(url_for('payment_qr', flight_id=flight_id, quantity=quantity, type_ticket=type_ticket))
 
 
 if __name__ == '__main__':
