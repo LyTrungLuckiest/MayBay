@@ -3,6 +3,20 @@
 {% block content %}
 
 <div class="container">
+    <div class="container mt-4">
+        {% if error_message %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Lỗi: {{ error_message }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+        {% if success_message %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>{{ success_message }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+    </div>
     <h2 class="text-center my-4" style="color: #ff5722; font-weight: bold;">Flight Booking</h2>
     <div class="form-section p-4 rounded" style="background-color: #fff8f0; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
         <form method="GET" action="/search">
@@ -156,8 +170,8 @@
                         <h6>Điều kiện vé</h6>
                         <p class="price text-danger">{{ flight.flight_price | intcomma }} VNĐ</p>
                         <p>Một chiều</p>
-                         <button class="btn btn-success"
-                                        onclick="addToCart(
+                        <button class="btn btn-success"
+                                onclick="addToCart(
                                         '{{ flight.flight_id }}',
                                         '{{ flight.plane_name }}',
                                         '{{ flight.flight_route.departure_airport.airport_name }}',
@@ -165,8 +179,8 @@
                                         '{{ flight.f_dept_time.strftime('%Y-%m-%d') }}',
                                         'ECONOMY',
                                         '{{ flight.flight_price }}')">
-                                    Đặt vé
-                                </button>
+                            Đặt vé
+                        </button>
                     </div>
                 </div>
             </div>
@@ -187,8 +201,8 @@
                         <h6>Điều kiện vé</h6>
                         <p class="price text-danger">{{ (flight.flight_price * 2) | round(0) | intcomma }} VNĐ</p>
                         <p>Một chiều</p>
-                       <button class="btn btn-success"
-                                        onclick="addToCart(
+                        <button class="btn btn-success"
+                                onclick="addToCart(
                                         '{{ flight.flight_id }}',
                                         '{{ flight.plane_name }}',
                                         '{{ flight.flight_route.departure_airport.airport_name }}',
@@ -196,8 +210,8 @@
                                         '{{ flight.f_dept_time.strftime('%Y-%m-%d') }}',
                                         'BUSINESS',
                                         '{{ flight.flight_price }}')">
-                                    Đặt vé
-                                </button>
+                            Đặt vé
+                        </button>
                     </div>
                 </div>
             </div>

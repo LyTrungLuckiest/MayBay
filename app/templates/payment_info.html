@@ -44,6 +44,14 @@
                         <input type="hidden" name="flight_id" value="{{ flight_id }}">
                         <input type="hidden" name="quantity" value="{{ quantity }}">
                         <input type="hidden" name="type_ticket" value="{{ type_ticket }}">
+                        <input type="hidden" name="departure_date" value="{{ departure_date }}">
+                        {% if type_ticket == 'BUSINESS' %}
+                        <input type="hidden" name="ticket_price" value="{{flight_price*2*quantity}}">
+                        {% else %}
+                        <input type="hidden" name="ticket_price" value="{{flight_price*quantity}}">
+                        {% endif %}
+
+
                         <div class="col-md-6">
                             <label for="contactFullName" class="form-label">Tên đệm và tên</label>
                             <input type="text" class="form-control" id="contactFullName" name="first_name"
@@ -66,17 +74,19 @@
                         </div>
 
                     </div>
+
+
                     <div class="d-flex justify-content-between align-items-center mt-4">
                         {% if type_ticket == 'BUSINESS' %}
-                        <div class="total text-success fw-bold">Tổng: {{flight_price*2*quantity}} đ</div>
+                        <div class="total text-success fw-bold">Tổng: {{ flight_price * 2 * quantity }} đ</div>
                         {% else %}
-                        <div class="total text-success fw-bold">Tổng: {{flight_price*quantity}} đ</div>
+                        <div class="total text-success fw-bold">Tổng: {{ flight_price * quantity }} đ</div>
                         {% endif %}
-                        <button type="submit"
-                                class="btn btn-success">
+                        <button type="submit" class="btn btn-success">
                             Tiếp tục
                         </button>
                     </div>
+
                 </form>
 
 
