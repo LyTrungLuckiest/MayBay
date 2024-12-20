@@ -1,7 +1,8 @@
 from app import db, app, dao
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from app.models import User, UserRole, Company, Flight, FlightRoute, Airport, Plane, Ticket, Luggage, Cancellation, Payment, Seat, FlightSchedule, IntermediateAirport
+from app.models import User, UserRole, Company, Flight, FlightRoute, Airport, Plane, Ticket, Luggage, Cancellation, \
+    Payment, Seat, FlightSchedule, IntermediateAirport, Regulation
 from flask_login import current_user, logout_user
 from flask_admin import BaseView, expose, AdminIndexView
 from flask import redirect, render_template, url_for
@@ -55,8 +56,8 @@ class TicketAdminView(AdminView):
     column_filters = ['ticket_id']
     can_view_details = True
 
-    column_list = ['ticket_id', 'issue_date', 'ticket_price', 'ticket_status', 'ticket_gate', 'user_id', 'flight_id' ]
-    form_columns = ['issue_date', 'ticket_price', 'ticket_status', 'ticket_gate', 'user_id', 'flight_id' ]
+    column_list = ['ticket_id', 'issue_date', 'ticket_price', 'ticket_status', 'ticket_gate', 'user_id', 'flight_id', 'seat_id', 'customer_id' ]
+    form_columns = ['issue_date', 'ticket_price', 'ticket_status', 'ticket_gate', 'user_id', 'flight_id', 'seat_id', 'customer_id' ]
 
 class LuggageAdminView(AdminView):
     column_list = ['luggage_id',  'luggage_name', 'weight', 'user_id', 'flight_id']
@@ -74,7 +75,11 @@ class IntermediateAirportAdminView(AdminView):
     column_list = ['intermediate_id', 'flight_id', 'airport_id', 'stopover_duration', 'stop_order']
     form_columns = ['flight_id', 'airport_id', 'stopover_duration', 'stop_order']
 
-
+class RegulationAdminView(AdminView):
+    column_list = ['regulation_id', 'airport_quantity', 'minimum_flight_time', 'max_intermediate_airports',
+                   'min_stopover_time', 'max_stopover_time', 'ticket_booking_hours', 'ticket_selling_hours']
+    form_columns = ['airport_quantity', 'minimum_flight_time', 'max_intermediate_airports',
+                   'min_stopover_time', 'max_stopover_time', 'ticket_booking_hours', 'ticket_selling_hours']
 
 class MyView(BaseView):
     def is_accessible(self):
@@ -109,5 +114,6 @@ admin.add_view(AdminView(Seat, db.session))
 admin.add_view(FlightScheduleAdminView(FlightSchedule, db.session))
 admin.add_view(AdminView(Company, db.session))
 admin.add_view(IntermediateAirportAdminView(IntermediateAirport, db.session))
+admin.add_view(RegulationAdminView(Regulation, db.session))
 admin.add_view(StatsView(name = 'Stats'))
 admin.add_view(LogoutView(name = 'Logout'))

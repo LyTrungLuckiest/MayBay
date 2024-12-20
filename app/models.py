@@ -203,6 +203,19 @@ class IntermediateAirport(db.Model):
     airport = relationship("Airport", backref="intermediate_airports")
 
 
+class Regulation(db.Model):
+    regulation_id = Column(Integer, primary_key=True, autoincrement=True)
+    airport_quantity = Column(Integer, nullable=False)
+    minimum_flight_time = Column(Integer, nullable=False) # Thời gian bay tối thiểu (phút)
+    max_intermediate_airports = Column(Integer, nullable=False)
+    min_stopover_time = Column(Integer, nullable=False) # Thời gian dừng tối thiểu (phút)
+    max_stopover_time = Column(Integer, nullable=False) # Thời gian dừng tối đa (phút)
+    ticket_booking_hours = Column(Integer, nullable=False) # Số giờ đặt vé trước (giờ)
+    ticket_selling_hours = Column(Integer, nullable=False) # Số giờ bán vé trước (giờ)
+
+    def __str__(self):
+        return f"Regulation {self.regulation_id} - Airport Quantity: {self.airport_quantity}"
+
 
 
 
@@ -357,5 +370,13 @@ if __name__ == '__main__':
                    flight_id=5, seat_id=5)
         ]
         db.session.add_all(tickets)
+        db.session.commit()
+
+        regulation = [
+            Regulation(airport_quantity=10, minimum_flight_time=30, min_stopover_time=20,
+                       max_stopover_time=30, ticket_booking_hours=12, max_intermediate_airports=2,
+                       ticket_selling_hours=4)
+        ]
+        db.session.add_all(regulation)
         db.session.commit()
 

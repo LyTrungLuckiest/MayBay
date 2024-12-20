@@ -7,7 +7,7 @@ import dao, utils
 from app import app, login,db
 from flask_login import login_user, logout_user,current_user
 
-from app.models import UserRole, Flight, CustomerInfo
+from app.models import UserRole, Flight, CustomerInfo, Regulation
 from datetime import datetime
 
 
@@ -353,6 +353,11 @@ def add_customer():
 
         # Sau khi lưu thành công, chuyển hướng đến trang thanh toán
         return redirect(url_for('payment_qr', flight_id=flight_id, quantity=quantity, type_ticket=type_ticket))
+
+@app.route('/regulations')
+def show_regulations():
+    regulations = Regulation.query.all()
+    return render_template('regulations.html', regulations=regulations)
 
 
 if __name__ == '__main__':

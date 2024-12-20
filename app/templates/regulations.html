@@ -1,0 +1,38 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Regulations</h1>
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th>#</th>
+            <th>Số lượng sân bay</th>
+            <th>Thời gian bay tối thiểu (phút)</th>
+            <th>Sân bay trung gian tối đa</th>
+            <th>Thời gian dừng tối thiểu (phút)</th>
+            <th>Thời gian dừng tối đa (phút)</th>
+            <th>Giờ đặt vé trước giờ bay</th>
+            <th>Giờ bán vé trước giờ bay</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for regulation in regulations %}
+        <tr>
+            <td>{{ regulation.regulation_id }}</td>
+            <td>{{ regulation.airport_quantity }}</td>
+            <td>{{ regulation.minimum_flight_time }}</td>
+            <td>{{ regulation.max_intermediate_airports }}</td>
+            <td>{{ regulation.min_stopover_time }}</td>
+            <td>{{ regulation.max_stopover_time }}</td>
+            <td>{{ regulation.ticket_booking_hours }}</td>
+            <td>{{ regulation.ticket_selling_hours }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock %}
