@@ -10,26 +10,20 @@ from flask import redirect, render_template, url_for
 
 class AdminView(ModelView):
     def is_accessible(self):
-        return current_user.is_authenticated and current_user.user_role.__eq__(UserRole.ADMIN)
+        return current_user.is_authenticated and current_user.user_role == UserRole.ADMIN
+
 
 class AuthenticatedView(BaseView):
     def is_accessible(self):
-        return current_user.is_authenticated
-                # and current_user.user_role == UserRole.ADMIN)
+        return current_user.is_authenticated and current_user.user_role == UserRole.ADMIN
 
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
     def index(self):
-        print(dao.ticket_stats())
         return self.render('admin/index.html', stats=dao.ticket_stats())
 
-class StatsView(AuthenticatedView):
-    @expose('/')
-    def index(self):
-        return self.render('admin/stats.html', stats=dao.get_flight_statistics(), stats2=dao.get_tiket_statistics())
 
-admin = Admin(app=app, name='eCommerce Admin', template_mode='bootstrap4', index_view=MyAdminIndexView())
-
+admin = Admin(app=app, name='Admin', template_mode='bootstrap4', index_view=MyAdminIndexView())
 
 
 class FlightAdminView(AdminView):
@@ -99,6 +93,11 @@ class HomeRedirectView(BaseView):
     def index(self):
         return redirect(url_for('index'))
 
+
+class StatsView(AuthenticatedView):
+    @expose('/')
+    def index(self):
+        return self.render('admin/stats.html', stats=dao.get_flight_statistics(), stats2=dao.get_tiket_statistics())
 
 
 admin.add_view(HomeRedirectView(name = 'Home page buy tickets'))

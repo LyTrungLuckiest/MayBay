@@ -1,8 +1,8 @@
 {% extends 'layout/base.html' %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-    <div class="row">
+<div class="container mt-5 mb-5" >
+    <div class="row" id="exportContent">
         <div class="col">
             <div class="card shadow p-4">
                 <p class="mb-1"><i class="bi bi-calendar-event"></i> Ngày đi: <strong>{{departure_date}}</strong></p>
@@ -150,7 +150,28 @@
         </div>
 
     </div>
+    <div class="text-end mb-3 mt-5">
+        <button id="exportBtn" class="btn btn-success me-3">Export to PDF</button>
+    </div>
 
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<script>
+    function exportReport() {
+        const element = document.getElementById('exportContent');
+        const opt = {
+            margin: 1,
+            filename: 'Ticket_Info.pdf',
+            image: {type: 'jpg', quality: 0.98},
+            html2canvas: {scale: 1},
+            jsPDF: {unit: 'in', format: 'letter', orientation: 'portrait'}
+        };
+
+        html2pdf().from(element).set(opt).save();
+    }
+
+    // Attach event listener to the Export button
+    document.getElementById('exportBtn').addEventListener('click', exportReport);
+</script>
 
 {% endblock %}

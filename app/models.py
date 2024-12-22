@@ -38,7 +38,7 @@ class User(UserMixin, db.Model):
     dob = Column(Date)
     gender = Column(Boolean)
     avatar = Column(String(200),
-                    default="https://res.cloudinary.com/dxxwcby8l/image/upload/v1690528735/cg6clgelp8zjwlehqsst.jpg")
+                    default="https://res.cloudinary.com/dd1frsvzk/image/upload/v1734870621/wk0gsuhqaxywgjq5iuqn.jpg")
     user_role = Column(SQLEnum(UserRole), default=UserRole.CUSTOMER)
 
     def __str__(self):
@@ -89,6 +89,8 @@ class Company(db.Model):
     com_name = Column(String(255), nullable=False)
     com_country = Column(String(255), nullable=False)
 
+    def __str__(self):
+        return self.com_name
 
 class Seat(db.Model):
     seat_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -244,15 +246,15 @@ if __name__ == '__main__':
         # Add Airports
         airports = [
             Airport(airport_name='Noi Bai International Airport', airport_address='Hanoi, Vietnam',
-                    airport_image='https://example.com/noi_bai.jpg'),
+                    airport_image='https://res.cloudinary.com/dd1frsvzk/image/upload/v1733647624/hanoi.png'),
             Airport(airport_name='Tan Son Nhat International Airport', airport_address='Ho Chi Minh, Vietnam',
-                    airport_image='https://example.com/tan_son_nhat.jpg'),
+                    airport_image='https://res.cloudinary.com/dd1frsvzk/image/upload/v1733648275/okbrcvcjttbxsh27axzo.jpg'),
             Airport(airport_name='Da Nang International Airport', airport_address='Da Nang, Vietnam',
-                    airport_image='https://example.com/da_nang.jpg'),
+                    airport_image='https://res.cloudinary.com/dd1frsvzk/image/upload/v1733648382/uiryuwbvp9ez34v7blrn.webp'),
             Airport(airport_name='Incheon International Airport', airport_address='Seoul, South Korea',
-                    airport_image='https://example.com/incheon.jpg'),
+                    airport_image='https://res.cloudinary.com/dd1frsvzk/image/upload/v1734852206/bsahhcbybyucl06tq64r.webp'),
             Airport(airport_name='Changi Airport', airport_address='Singapore',
-                    airport_image='https://example.com/changi.jpg')
+                    airport_image='https://res.cloudinary.com/dd1frsvzk/image/upload/v1734852260/Singapore.jpg')
         ]
         db.session.add_all(airports)
         db.session.commit()
@@ -311,31 +313,38 @@ if __name__ == '__main__':
         routes = [
             FlightRoute(departure_airport_id=1, arrival_airport_id=2, distance=1150.0, description='Hanoi to HCM City'),
             FlightRoute(departure_airport_id=1, arrival_airport_id=3, distance=764.0, description='Hanoi to Da Nang'),
-            FlightRoute(departure_airport_id=3, arrival_airport_id=2, distance=964.0,
-                        description='Da Nang to HCM City'),
+            FlightRoute(departure_airport_id=3, arrival_airport_id=2, distance=964.0, description='Da Nang to HCM City'),
             FlightRoute(departure_airport_id=4, arrival_airport_id=1, distance=2740.0, description='Seoul to Hanoi'),
-            FlightRoute(departure_airport_id=5, arrival_airport_id=1, distance=2224.0, description='Singapore to Hanoi')
+            FlightRoute(departure_airport_id=5, arrival_airport_id=1, distance=2224.0, description='Singapore to Hanoi'),
+            FlightRoute(departure_airport_id=2, arrival_airport_id=1, distance=1234.0, description='HCM City to HaNoi'),
+            FlightRoute(departure_airport_id=2, arrival_airport_id=3, distance=800.0, description='HCM City to DaNang')
         ]
         db.session.add_all(routes)
         db.session.commit()
 
         # Add Flights
         flights = [
-            Flight(f_dept_time=datetime(2024, 12, 15, 6, 0), flight_arr_time=datetime(2024, 12, 15, 8, 0),
+            Flight(f_dept_time=datetime(2024, 12, 26, 6, 0), flight_arr_time=datetime(2024, 12, 26, 8, 0),
                    flight_duration=2.0, flight_price=150.0, flight_type=FlightType.DIRECT, flight_route_id=1,
                    plane_id=1),
-            Flight(f_dept_time=datetime(2024, 12, 16, 7, 0), flight_arr_time=datetime(2024, 12, 16, 8, 30),
+            Flight(f_dept_time=datetime(2024, 12, 26, 7, 0), flight_arr_time=datetime(2024, 12, 26, 8, 30),
                    flight_duration=1.5, flight_price=120.0, flight_type=FlightType.DIRECT, flight_route_id=2,
                    plane_id=2),
-            Flight(f_dept_time=datetime(2024, 12, 17, 9, 0), flight_arr_time=datetime(2024, 12, 17, 12, 0),
+            Flight(f_dept_time=datetime(2024, 12, 27, 9, 0), flight_arr_time=datetime(2024, 12, 27, 12, 0),
                    flight_duration=3.0, flight_price=200.0, flight_type=FlightType.ONE_STOP, flight_route_id=3,
                    plane_id=3),
-            Flight(f_dept_time=datetime(2024, 12, 18, 10, 0), flight_arr_time=datetime(2024, 12, 18, 16, 0),
+            Flight(f_dept_time=datetime(2024, 12, 27, 10, 0), flight_arr_time=datetime(2024, 12, 27, 16, 0),
                    flight_duration=6.0, flight_price=400.0, flight_type=FlightType.DIRECT, flight_route_id=4,
                    plane_id=4),
-            Flight(f_dept_time=datetime(2024, 12, 19, 11, 0), flight_arr_time=datetime(2024, 12, 19, 15, 0),
+            Flight(f_dept_time=datetime(2024, 12, 27, 11, 0), flight_arr_time=datetime(2024, 12, 27, 15, 0),
                    flight_duration=4.0, flight_price=350.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=5,
-                   plane_id=5)
+                   plane_id=5),
+            Flight(f_dept_time=datetime(2024, 12, 27, 11, 0), flight_arr_time=datetime(2024, 12, 27, 15, 0),
+                   flight_duration=4.0, flight_price=350.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=6,
+                   plane_id=2),
+            Flight(f_dept_time=datetime(2024, 12, 28, 15, 0), flight_arr_time=datetime(2024, 12, 28, 17, 0),
+                   flight_duration=4.0, flight_price=350.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=7,
+                   plane_id=4)
         ]
         db.session.add_all(flights)
         db.session.commit()
