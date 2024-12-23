@@ -185,6 +185,7 @@ class CustomerInfo(db.Model):
 
 class Ticket(db.Model):
     ticket_id = Column(Integer, primary_key=True, autoincrement=True)
+    transaction_id=Column(String(50), nullable=False)
     issue_date = Column(Date, nullable=False)
     ticket_price = Column(Float, nullable=False)
     ticket_status = Column(Boolean, nullable=False)
@@ -325,25 +326,25 @@ if __name__ == '__main__':
         # Add Flights
         flights = [
             Flight(f_dept_time=datetime(2024, 12, 26, 6, 0), flight_arr_time=datetime(2024, 12, 26, 8, 0),
-                   flight_duration=2.0, flight_price=150.0, flight_type=FlightType.DIRECT, flight_route_id=1,
+                   flight_duration=2.0, flight_price=1500000.0, flight_type=FlightType.DIRECT, flight_route_id=1,
                    plane_id=1),
             Flight(f_dept_time=datetime(2024, 12, 26, 7, 0), flight_arr_time=datetime(2024, 12, 26, 8, 30),
-                   flight_duration=1.5, flight_price=120.0, flight_type=FlightType.DIRECT, flight_route_id=2,
+                   flight_duration=1.5, flight_price=1200000.0, flight_type=FlightType.DIRECT, flight_route_id=2,
                    plane_id=2),
             Flight(f_dept_time=datetime(2024, 12, 27, 9, 0), flight_arr_time=datetime(2024, 12, 27, 12, 0),
-                   flight_duration=3.0, flight_price=200.0, flight_type=FlightType.ONE_STOP, flight_route_id=3,
+                   flight_duration=3.0, flight_price=2000000.0, flight_type=FlightType.ONE_STOP, flight_route_id=3,
                    plane_id=3),
             Flight(f_dept_time=datetime(2024, 12, 27, 10, 0), flight_arr_time=datetime(2024, 12, 27, 16, 0),
-                   flight_duration=6.0, flight_price=400.0, flight_type=FlightType.DIRECT, flight_route_id=4,
+                   flight_duration=6.0, flight_price=4000000.0, flight_type=FlightType.DIRECT, flight_route_id=4,
                    plane_id=4),
             Flight(f_dept_time=datetime(2024, 12, 27, 11, 0), flight_arr_time=datetime(2024, 12, 27, 15, 0),
-                   flight_duration=4.0, flight_price=350.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=5,
+                   flight_duration=4.0, flight_price=3500000.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=5,
                    plane_id=5),
             Flight(f_dept_time=datetime(2024, 12, 27, 11, 0), flight_arr_time=datetime(2024, 12, 27, 15, 0),
-                   flight_duration=4.0, flight_price=350.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=6,
+                   flight_duration=4.0, flight_price=3500000.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=6,
                    plane_id=2),
             Flight(f_dept_time=datetime(2024, 12, 28, 15, 0), flight_arr_time=datetime(2024, 12, 28, 17, 0),
-                   flight_duration=4.0, flight_price=350.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=7,
+                   flight_duration=4.0, flight_price=3500000.0, flight_type=FlightType.MULTIPLE_STOP, flight_route_id=7,
                    plane_id=4)
         ]
         db.session.add_all(flights)
@@ -367,19 +368,20 @@ if __name__ == '__main__':
 
         # Add Tickets
         tickets = [
-            Ticket(issue_date=date.today(), ticket_price=150.0, ticket_status=True, ticket_gate=1, user_id=2,
-                   flight_id=1, seat_id=1, customer_id = 1),
-            Ticket(issue_date=date.today(), ticket_price=120.0, ticket_status=True, ticket_gate=2, user_id=4,
+            Ticket(transaction_id="a1",issue_date=date.today(), ticket_price=150.0, ticket_status=True, ticket_gate=1, user_id=2,
+                   flight_id=1, seat_id=1, customer_id=1),
+            Ticket(transaction_id="a2",issue_date=date.today(), ticket_price=120.0, ticket_status=True, ticket_gate=2, user_id=4,
                    flight_id=2, seat_id=2),
-            Ticket(issue_date=date.today(), ticket_price=200.0, ticket_status=True, ticket_gate=3, user_id=5,
+            Ticket(transaction_id="a3",issue_date=date.today(), ticket_price=200.0, ticket_status=True, ticket_gate=3, user_id=5,
                    flight_id=3, seat_id=3),
-            Ticket(issue_date=date.today(), ticket_price=400.0, ticket_status=True, ticket_gate=4, user_id=5,
+            Ticket(transaction_id="a4",issue_date=date.today(), ticket_price=400.0, ticket_status=True, ticket_gate=4, user_id=5,
                    flight_id=4, seat_id=4),
-            Ticket(issue_date=date.today(), ticket_price=350.0, ticket_status=True, ticket_gate=5, user_id=4,
+            Ticket(transaction_id="a5",issue_date=date.today(), ticket_price=350.0, ticket_status=True, ticket_gate=5, user_id=4,
                    flight_id=5, seat_id=5)
         ]
         db.session.add_all(tickets)
         db.session.commit()
+
 
         regulation = [
             Regulation(airport_quantity=10, minimum_flight_time=30, min_stopover_time=20,

@@ -1,0 +1,66 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Trang Chu{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="mb-0">Kết quả thanh toán</h3>
+        </div>
+        <div class="card-body">
+            <div class="text-center">
+                <!-- Transaction Status -->
+                <h5 class="text-primary">Mã giao dịch: {{ ticket_id }}</h5>
+                <p class="h4 text-success my-3">
+                    Thanh toán <span class="fw-bold">{{ result }}</span>!
+                </p>
+
+                <!-- Payment Details -->
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="list-group">
+                            <p class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Tổng số tiền:</strong>
+                                <span>{{ total_amount }} VND</span>
+                            </p>
+                            <p class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Hãng hàng không:</strong>
+                                <span>{{ company_name }}</span>
+                            </p>
+                            <p class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Thời gian khởi hành:</strong>
+                                <span>{{ departure_time }}</span>
+                            </p>
+                            <p class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Thời gian hạ cánh:</strong>
+                                <span>{{ arrival_time }}</span>
+                            </p>
+                            <p class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Điểm đi:</strong>
+                                <span>{{ departure_local }}</span>
+                            </p>
+                            <p class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Điểm đến:</strong>
+                                <span>{{ arrival_local }}</span>
+                            </p>
+                            <p class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Loại vé:</strong>
+                                <span>{{ type_ticket }}</span>
+                            </p>
+                            <p class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Số lượng vé:</strong>
+                                <span>{{ quantity }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="/" class="btn btn-outline-primary">Quay lại trang chủ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

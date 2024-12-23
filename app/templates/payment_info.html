@@ -45,6 +45,8 @@
                         <input type="hidden" name="quantity" value="{{ quantity }}">
                         <input type="hidden" name="type_ticket" value="{{ type_ticket }}">
                         <input type="hidden" name="departure_date" value="{{ departure_date }}">
+                        <input type="hidden" name="quantity" value="{{ quantity }}">
+
                         {% if type_ticket == 'BUSINESS' %}
                         <input type="hidden" name="ticket_price" value="{{flight_price*2*quantity}}">
                         {% else %}

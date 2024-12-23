@@ -1,10 +1,13 @@
+import urllib
+
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 from app.models import User, Airport, FlightRoute, Flight, Company, Booking, Ticket, Seat
-from app import db,app
+from app import db, app
 import hashlib
 import cloudinary.uploader
 from datetime import datetime
+from flask import request,redirect
 
 def get_user_by_id(id):
     return User.query.get(id)
@@ -242,30 +245,33 @@ def ticket_stats():
     return stats
 
 
-def get_first_available_seat(flight_id, seat_class=None):
-
-    # Tìm chuyến bay theo flight_id
+def get_first_available_seat(flight_id, quantity, seat_class=None):
+    # Find the flight by flight_id
     flight = Flight.query.filter_by(flight_id=flight_id).first()
 
     if not flight:
-         return None  # Không tìm thấy chuyến bay
+        return None  # Flight not found
 
-        # Lấy danh sách ghế trống của máy bay thuộc chuyến bay
+    # Query for available seats on the plane for this flight
     query = Seat.query.filter_by(plane_id=flight.plane_id, seat_status=False)
 
-    # Lọc theo loại ghế nếu có
+    # Filter by seat class if provided
     if seat_class:
         query = query.filter_by(seat_class=seat_class)
 
-    # Lấy ghế đầu tiên
-    first_seat = query.first()
+    # Count the available seats
+    available_seats = query.count()
 
-    if first_seat:
-        return {
-            first_seat.seat_id,
+    # Check if there are enough available seats for the requested quantity
+    if available_seats >= quantity:
+        # Get the first available seat(s)
+        first_seats = query.limit(quantity).all()  # Limit the query to the requested quantity
 
-            }
-    return None
+        # Return a list of seat IDs
+        return [seat.seat_id for seat in first_seats]
+
+    return None  # Not enough available seats
+
 
 def mark_seat_as_booked(seat_id):
     seat = Seat.query.get(seat_id)
@@ -273,3 +279,4 @@ def mark_seat_as_booked(seat_id):
         seat.seat_status = True
         db.session.add(seat)
         db.session.commit()
+

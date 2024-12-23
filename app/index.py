@@ -1,12 +1,18 @@
+import hashlib
+import hmac
 import math
+import urllib
+import uuid
+from urllib.parse import urlencode
 import unicodedata
-from flask import render_template, request, redirect, session, jsonify
+from flask import render_template, request, redirect, session, jsonify, url_for,g
 from app import dao, utils
-from app import app, login, db
+from app import app, login, db, VNP_TMN_CODE, VNP_HASH_SECRET, VNP_URL, RETURN_URL, CALLBACK_URL
 from flask_login import login_user, logout_user,current_user, login_required
-
+from datetime import datetime
 from app.models import UserRole, Flight, CustomerInfo, Ticket, Regulation
 from datetime import datetime
+
 
 
 def remove_accents(input_str):
@@ -14,31 +20,34 @@ def remove_accents(input_str):
         c for c in unicodedata.normalize('NFD', input_str)
         if unicodedata.category(c) != 'Mn'
     )
+@app.before_request
+def before_request():
+    departure_name = request.args.get('departure', 'Ho Chi Minh')
+    departure_name = remove_accents(departure_name)
+    g.routes = dao.get_popular_routes(departure_name)
+    g.cities = ["Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Singapore", "Bangkok", "Taipei", "Seoul", "Tokyo"]
+    g.airports = dao.load_airports()
+    g.departure_name = departure_name
+
+    # Tính toán số trang
+    page = request.args.get('page', 1)
+    page = int(page)
+    g.page = page
+    g.flights = dao.get_flights(g.page)
+
+    flights_counter = dao.count_flights()
+    g.total_pages = math.ceil(flights_counter / app.config['PAGE_SIZE'])
 
 @app.route("/")
 def index():
-        departure_name = request.args.get('departure', 'Ho Chi Minh')
-        departure_name = remove_accents(departure_name)
-        routes = dao.get_popular_routes(departure_name)
-        cities = ["Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Singapore", "Bangkok", "Taipei", "Seoul", "Tokyo"]
-        airports = dao.load_airports()
+    return render_template(
+        'index.html',
+        flights=g.flights,
+        current_page=g.page,   # Truyền trang hiện tại
+        pages=g.total_pages    # Truyền tổng số trang
+    )
 
-        page = request.args.get('page', 1)
-        page = int(page)
 
-        flights = dao.get_flights(page)
-        flights_counter = dao.count_flights()
-        total_pages = math.ceil(flights_counter / app.config['PAGE_SIZE'])
-
-        return render_template(
-            'index.html',
-            airports=airports,
-            routes=routes,
-            cities=cities,
-            flights=flights,
-            departure_name=departure_name,
-            pages=total_pages,
-        )
 
 
 @app.route('/register', methods=['get', 'post'])
@@ -183,6 +192,7 @@ def payment_info(flight_id, quantity, type_ticket):
 @app.route("/payment_qr/<int:flight_id>/<int:quantity>/<type_ticket>")
 def payment_qr(flight_id,quantity,type_ticket):
     flight = Flight.query.get(flight_id)
+    ticket_id = str(uuid.uuid4())
 
     if flight:
         # Lấy các thông tin từ chuyến bay và các bảng liên quan
@@ -196,7 +206,8 @@ def payment_qr(flight_id,quantity,type_ticket):
             company_name = company_name,
             flight_price = flight_price,
             quantity = quantity,
-            type_ticket = type_ticket
+            type_ticket = type_ticket,
+            ticket_id=ticket_id
         )
     else:
         return "Flight not found", 404
@@ -325,31 +336,23 @@ def add_customer():
         type_ticket = request.form.get('type_ticket')
         ticket_price = request.form.get('ticket_price')
         issue_date = request.form.get('departure_date')
-
-        departure_name = request.args.get('departure', 'Ho Chi Minh')
-        departure_name = remove_accents(departure_name)
-        routes = dao.get_popular_routes(departure_name)
-        cities = ["Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Singapore", "Bangkok", "Taipei", "Seoul", "Tokyo"]
-        airports = dao.load_airports()
-
-        page = request.args.get('page', 1)
-        page = int(page)
-
-        flights = dao.get_flights(page)
-        flights_counter = dao.count_flights()
-        total_pages = math.ceil(flights_counter / app.config['PAGE_SIZE'])
+        quantity = int(request.form.get('quantity'))
 
         # Gọi DAO để lấy ghế đầu tiên
-        seat_id = dao.get_first_available_seat(flight_id, type_ticket)
-        if not seat_id:
-            return render_template('index.html', airports=airports,
-            routes=routes,
-            cities=cities,
-            flights=flights,
-            departure_name=departure_name,
-            pages=total_pages, error_message="Tất cả ghế đã được đặt. Vui lòng thử lại sau."
-           )
-
+        seat_ids = []
+        for _ in range(quantity):
+            seat_id = dao.get_first_available_seat(flight_id,quantity, type_ticket)
+            if not seat_id:
+                return render_template('index.html', airports=g.airports,
+                                       routes=g.routes,
+                                       cities=g.cities,
+                                       flights=g.flights,
+                                       departure_name=g.departure_name,
+                                       pages=g.total_pages,
+                                       error_message="Không đủ ghế. Vui lòng thử lại sau."
+                                       )
+            seat_ids.append(seat_id)
+            dao.mark_seat_as_booked(seat_id)
 
         # Tạo đối tượng Customer và lưu vào CSDL
         new_customer = CustomerInfo(
@@ -362,38 +365,197 @@ def add_customer():
         db.session.add(new_customer)
         db.session.commit()
 
+        ticket_ids = []
+        for seat_id in seat_ids:
+            ticket_id = str(uuid.uuid4())
+            ticket = Ticket(
+                transaction_id=ticket_id,
+                issue_date=issue_date,
+                ticket_price=ticket_price,
+                ticket_status=True,
+                ticket_gate=1,
+                user_id=current_user.id,
+                flight_id=flight_id,
+                seat_id=seat_id,
+                customer_id=new_customer.customer_id
+            )
+            db.session.add(ticket)
+            db.session.commit()
+            ticket_ids.append(ticket_id)
 
-        ticket = Ticket(
-            issue_date=issue_date,
-            ticket_price=ticket_price,
-            ticket_status=True,
-            ticket_gate=1,
-            user_id=current_user.id,
-            flight_id=flight_id,
-            seat_id=seat_id,
-            customer_id=new_customer.customer_id
-
+        # Sau khi lưu thành công, chuyển hướng về trang chủ với thông điệp
+        return render_template(
+            'index.html', airports=g.airports,
+            routes=g.routes,
+            cities=g.cities,
+            flights=g.flights,
+            departure_name=g.departure_name,
+            pages=g.total_pages,
+            success_message="Đặt vé thành công"
         )
-        db.session.add(ticket)
-        db.session.commit()
-        dao.mark_seat_as_booked(seat_id)
 
 
-
-        # Sau khi lưu thành công, chuyển hướng đến trang thanh toán
-        return render_template('index.html', airports=airports,
-                               routes=routes,
-                               cities=cities,
-                               flights=flights,
-                               departure_name=departure_name,
-                               pages=total_pages, success_message="Đặt vé thành công"
-                               )
 @app.route('/regulations')
 def show_regulations():
     regulations = Regulation.query.all()
     return render_template('regulations.html', regulations=regulations)
 
+
+def get_payment_url(request_data, secret_key):
+    # Sắp xếp dữ liệu theo thứ tự alphabe
+    inputData = sorted(request_data.items())
+    queryString = '&'.join([f"{key}={urllib.parse.quote_plus(str(val))}" for key, val in inputData])
+
+    # Tạo mã băm HMACSHA512
+    hash_value = hmac.new(secret_key.encode('utf-8'), queryString.encode('utf-8'), hashlib.sha512).hexdigest()
+
+    # Trả về URL thanh toán
+    return f"{VNP_URL}?{queryString}&vnp_SecureHash={hash_value}"
+
+
+@app.route('/payment', methods=['GET', 'POST'])
+def payment():
+    if request.method == 'POST':
+        flight_id = request.form['flight_id']
+        quantity = request.form['quantity']
+        type_ticket = request.form['type_ticket']
+        ticket_id = request.form['ticket_id']
+        total_amount = request.form.get('amount')
+        total_amount = int(float(total_amount))
+        order_type = "Bán Sach"
+        order_desc = f"KaliLove Thanh Toán số tiền là {total_amount} VND"
+        bank_code = "ncb"
+        language = "vn"
+        ipaddr = request.remote_addr
+        create_date = datetime.now().strftime('%Y%m%d%H%M%S')
+
+        session['flight_id'] = flight_id
+        session['ticket_id'] = request.form['ticket_id']
+        session['quantity'] = request.form['quantity']
+        session['type_ticket'] = request.form['type_ticket']
+
+        if not flight_id or not quantity or not ticket_id or not type_ticket:
+            return "Required fields missing", 400
+
+        # Xây dựng requestData
+        request_data = {
+            'vnp_Version': '2.1.0',
+            'vnp_Command': 'pay',
+            'vnp_TmnCode': VNP_TMN_CODE,
+            'vnp_Amount': total_amount * 100,
+            'vnp_CurrCode': 'VND',
+            'vnp_TxnRef': ticket_id,
+            'vnp_OrderInfo': order_desc,
+            'vnp_OrderType': order_type,
+            'vnp_Locale': language if language else 'vn',
+            'vnp_BankCode': bank_code if bank_code else '',
+            'vnp_CreateDate': create_date,
+            'vnp_IpAddr': ipaddr,
+            'vnp_ReturnUrl': RETURN_URL,
+        }
+
+        # Lấy URL thanh toán
+        payment_url = get_payment_url(request_data, VNP_HASH_SECRET)
+        print(f"Payment URL: {payment_url}")
+
+        return redirect(payment_url)
+
+    return render_template('payment.html')
+
+
+
+@app.route('/payment_return', methods=['GET', 'POST'])
+def payment_return():
+    # Retrieve data from session
+    flight_id = session.get('flight_id')
+    ticket_id = session.get('ticket_id')
+    quantity = session.get('quantity')
+    quantity = int(quantity)
+    type_ticket = session.get('type_ticket')
+
+    # Get data from payment gateway response (GET or POST)
+    input_data = request.args if request.method == 'GET' else request.form
+    print(input_data)  # For debugging purposes
+
+    if input_data:
+        vnp_secure_hash = input_data.get('vnp_SecureHash')
+        vnp_response_code = input_data.get('vnp_ResponseCode')
+
+        # Calculate the secure hash for verification
+        request_data = {key: value for key, value in input_data.items() if key != 'vnp_SecureHash'}
+        hash_value = hmac.new(VNP_HASH_SECRET.encode('utf-8'), urllib.parse.urlencode(request_data).encode('utf-8'),
+                              hashlib.sha512).hexdigest()
+
+        # Check the secure hash and response code
+        if vnp_secure_hash == hash_value:
+            if vnp_response_code == "00":
+                # Payment successful
+                result = "Thành công"
+                # Query the flight details from the database (for display)
+                flight = Flight.query.get(flight_id)  # Example: Assuming you have a Flight model
+                if flight:
+                    company_name = flight.plane.company.com_name
+                    departure_time = flight.f_dept_time
+                    arrival_time = flight.flight_arr_time
+                    departure_local = flight.flight_route.departure_airport.airport_name
+                    arrival_local = flight.flight_route.arrival_airport.airport_name
+                    issue_date = departure_time
+
+                    # Gọi DAO để lấy ghế đầu tiên
+                    seat_ids = []
+                    for _ in range(quantity):
+                        seat_id = dao.get_first_available_seat(flight_id,quantity, type_ticket)
+                        if not seat_id:
+                            return render_template('index.html', airports=g.airports,
+                                                   routes=g.routes,
+                                                   cities=g.cities,
+                                                   flights=g.flights,
+                                                   departure_name=g.departure_name,
+                                                   pages=g.total_pages,
+                                                   error_message="Không đủ ghế. Vui lòng thử lại sau."
+                                                   )
+                        seat_ids.append(seat_id)
+                        dao.mark_seat_as_booked(seat_id)
+
+                    ticket_ids = []
+                    for seat_id in seat_ids:
+                        ticket_id = str(uuid.uuid4())
+                        ticket = Ticket(
+                            transaction_id=ticket_id,
+                            issue_date=issue_date,
+                            ticket_price=int(float(input_data.get('vnp_Amount'))) / 100,
+                            ticket_status=True,
+                            ticket_gate=1,
+                            user_id=current_user.id,
+                            flight_id=flight_id,
+                            seat_id=seat_id
+                        )
+                        db.session.add(ticket)
+                        db.session.commit()
+                        ticket_ids.append(ticket_id)
+
+                    return render_template('payment_return.html', result=result,
+                                           ticket_id=ticket_id,
+                                           total_amount=int(float(input_data.get('vnp_Amount'))) / 100,
+                                           company_name=company_name, departure_time=departure_time,
+                                           arrival_time=arrival_time,
+                                           departure_local=departure_local, arrival_local=arrival_local,
+                                           type_ticket=type_ticket, quantity=quantity)
+                else:
+                    result = "Lỗi: Không tìm thấy chuyến bay"
+                    return render_template('payment_return.html', result=result, ticket_id=ticket_id)
+            else:
+                # Payment failed
+                result = "Lỗi"
+                return render_template('payment_return.html', result=result, ticket_id=ticket_id)
+        else:
+            # Invalid secure hash
+            result = "Sai mã băm"
+            return render_template('payment_return.html', result=result, ticket_id=ticket_id)
+
+    return render_template('payment_return.html', result="Không nhận được dữ liệu")
+
+
 if __name__ == '__main__':
     with app.app_context():
-        from app import admin
         app.run(debug=True)

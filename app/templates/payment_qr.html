@@ -1,10 +1,10 @@
 {% extends 'layout/base.html' %}
 
 {% block content %}
-
 <div class="container mt-5">
     <div class="row g-4">
         <!-- Transaction Details -->
+
         <div class="col-md-6">
             <div class="card shadow border-0">
                 <div class="card-header bg-primary text-white">
@@ -18,7 +18,7 @@
                     <h2 class="text-danger fw-bold">{{ flight_price * quantity }} VND</h2>
                     {% endif %}
                     <hr>
-                    <p><strong>Mã đơn hàng:</strong> {{ flight_id }}</p>
+                    <p><strong>Mã đơn hàng:</strong> {{ ticket_id }}</p>
                     <p><strong>Loại vé</strong> {{ type_ticket }}</p>
                     <p><strong>Nội dung:</strong> Thanh toán vé máy bay</p>
                     <p><strong>Phí giao dịch:</strong> 0 VND</p>
@@ -45,23 +45,56 @@
                              alt="QR Code"
                              class="img-fluid"
                              style="max-width: 250px; max-height: 200px; width: 250px; height: 200px;">
-
                     </div>
-                    <p><strong>Số tài khoản:</strong> 9611310000117006</p>
-                    <p><strong>Chủ tài khoản:</strong> 9PAY BIZTRIP</p>
-                    {% if type_ticket == 'BUSINESS' %}
-                    <p><strong>Số tiền chuyển: </strong>{{ flight_price * quantity * 2 }} VND</p>
-                    {% else %}
-                    <p><strong>Số tiền chuyển: </strong>{{ flight_price * quantity }} VND</p>
-                    {% endif %}
 
                     <p class="text-muted">Lưu ý: Vui lòng chuyển khoản 24/7 để giao dịch xử lý nhanh nhất.</p>
                     <p class="text-muted">Hotline: 1900 88 68 32</p>
+
+                    <!-- Thanh toán VNPAY -->
+                    <div class="container mt-5">
+                        <h2 class="mb-4">Thông tin thanh toán</h2>
+                        <form method="POST" action="/payment">
+                            <input type="hidden" name="flight_id" value="{{ flight_id }}">
+                            <input type="hidden" name="quantity" value="{{ quantity }}">
+                            <input type="hidden" name="type_ticket" value="{{ type_ticket }}">
+                            <input type="hidden" name="ticket_id" value="{{ ticket_id }}">
+                            <div class="mb-3">
+                                <label for="ticket_id" class="form-label">Mã đơn hàng:</label>
+                                <input type="text" id="ticket_id" name="ticket_id" class="form-control"
+                                       value="{{ticket_id}}" readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                {% if type_ticket == 'BUSINESS' %}
+                                <label for="amount_business" class="form-label">Số tiền:</label>
+                                <input type="number" id="amount_business" name="amount" class="form-control"
+                                       value="{{ flight_price*quantity*2 }}" readonly>
+                                {% else %}
+                                <label for="amount_economy" class="form-label">Số tiền:</label>
+                                <input type="number" id="amount_economy" name="amount" class="form-control"
+                                       value="{{ flight_price*quantity }}" readonly>
+                                {%endif%}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="bank_code" class="form-label">Mã ngân hàng</label>
+                                <input type="text" id="bank_code" name="bank_code" class="form-control" value="NCB"
+                                       readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="language" class="form-label">Ngôn ngữ:</label>
+                                <input type="text" id="language" name="language" class="form-control" value="VN">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Thanh toán</button>
+                        </form>
+                    </div>
+
 
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
