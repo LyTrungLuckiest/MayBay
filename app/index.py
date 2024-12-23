@@ -1,7 +1,7 @@
 import math
 import unicodedata
 from flask import render_template, request, redirect, session, jsonify
-import dao, utils
+from app import dao, utils
 from app import app, login, db
 from flask_login import login_user, logout_user,current_user, login_required
 
